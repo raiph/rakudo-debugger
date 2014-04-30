@@ -64,12 +64,15 @@ my class SourceFile {
             );
         @best ?? @best[0].value.name !! ''
     }
-    
+
+    # replace manual cache with 'is cached' when latter works
     method line_of($pos, $def_line, $def_pos) {
+        state %cache; if %cache{$pos} { return |%cache{$pos} };
         my $last_p = 0;
         for @!line_offsets.kv -> $l, $p {
             if $p > $pos {
-                return ($l - 1, abs($pos - $last_p));
+               %cache{$pos} = ($l -1, abs($pos - $last_p));
+                return |%cache{$pos};
             }
             $last_p = $p;
         }
