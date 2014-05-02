@@ -22,6 +22,7 @@ my class SourceFile {
     has $.source;
     has @!lines;
     has @!line_offsets;
+    has %!line_of_cache;
     has @!regex_regions;
     has %!routine_regions{Range};
     
@@ -68,11 +69,11 @@ my class SourceFile {
     # replace manual cache with original code plus 'is cached' routine trait when it works:
     method line_of($pos, $def_line, $def_pos) {
         my $last_p = 0;
-        state %cache; if %cache{$pos} { return |%cache{$pos} };
+        if %!line_of_cache{$pos} { return |%!line_of_cache{$pos} };
         for @!line_offsets.kv -> $l, $p {
             if $p > $pos {
-                %cache{$pos} = ($l - 1, abs($pos - $last_p));
-                return |%cache{$pos};
+                %!line_of_cache{$pos} = ($l - 1, abs($pos - $last_p));
+                return |%!line_of_cache{$pos};
             }
             $last_p = $p;
         }
